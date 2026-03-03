@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TabVault - Hide Tabs in Panic Mode</title>
+<meta name="description" content="One keystroke hides your sensitive tabs. Encrypted local vault. No cloud. No traces. For job hunters, money trackers, and everyone else with something private.">
+<meta property="og:title" content="TabVault - Hide Tabs in Panic Mode">
+<meta property="og:description" content="Ctrl+Shift+V. Your sensitive tabs vanish. Come back when it's safe.">
+<meta name="theme-color" content="#050914">
+<style>
+  :root {
+    --bg: #050914;
+    --bg2: #080d1c;
+    --navy: #0a1128;
+    --blue: #0d1f4e;
+    --accent: #00e5ff;
+    --accent2: #00b4d8;
+    --red: #ff3b5c;
+    --glass: rgba(255,255,255,0.05);
+    --glass-border: rgba(255,255,255,0.08);
+    --text: #e8eeff;
+    --muted: #7b8ab8;
+    --dim: #3a4466;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Helvetica Neue', -apple-system, BlinkMacSystemFont, sans-serif;
+    line-height: 1.6;
+    overflow-x: hidden;
+    min-height: 100vh;
+  }
+
+  /* ── Background ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 20% -10%, rgba(0,60,180,0.35) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 50% at 80% 110%, rgba(0,180,220,0.15) 0%, transparent 55%),
+      radial-gradient(ellipse 100% 80% at 50% 50%, #080d1c 0%, #050914 100%);
+    z-index: -2;
+  }
+
+  /* Animated grid */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,229,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,229,255,0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+    z-index: -1;
+    mask-image: radial-gradient(ellipse 80% 80% at 50% 0%, black 0%, transparent 70%);
+  }
+
+  /* ── Nav ── */
+  nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 40px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(5,9,20,0.7);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--glass-border);
+  }
+
+  .nav-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+  }
+
+  .logo-mark {
+    width: 32px; height: 32px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 0 16px rgba(0,229,255,0.4);
+    flex-shrink: 0;
+  }
+
+  .logo-mark svg { width: 16px; height: 16px; color: #000; }
+
+  .logo-type {
+    font-size: 17px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--text);
+  }
+
+  .logo-type span { color: var(--accent); }
+
+  .nav-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 18px;
+    background: var(--accent);
+    color: #000;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    border-radius: 50px;
+    text-decoration: none;
+    transition: all 0.2s;
+    box-shadow: 0 0 20px rgba(0,229,255,0.3);
+  }
+
+  .nav-cta:hover {
+    background: #fff;
+    box-shadow: 0 0 30px rgba(0,229,255,0.5);
+    transform: translateY(-1px);
+  }
+
+  /* ── Hero ── */
+  .hero {
+    padding: 100px 40px 80px;
+    text-align: center;
+    max-width: 860px;
+    margin: 0 auto;
+    position: relative;
+  }
+
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 6px 14px;
+    background: rgba(0,229,255,0.08);
+    border: 1px solid rgba(0,229,255,0.2);
+    border-radius: 50px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--accent);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 28px;
+    animation: fadeUp 0.6s ease both;
+  }
+
+  .badge-dot {
+    width: 6px; height: 6px;
+    background: var(--accent);
+    border-radius: 50%;
+    box-shadow: 0 0 8px var(--accent);
+    animation: pulse 2s ease infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.8); }
+  }
+
+  h1 {
+    font-size: clamp(2.6rem, 7vw, 4.2rem);
+    font-weight: 800;
+    letter-spacing: -0.035em;
+    line-height: 1.08;
+    margin-bottom: 24px;
+    animation: fadeUp 0.6s 0.1s ease both;
+  }
+
+  h1 em {
+    font-style: normal;
+    background: linear-gradient(135deg, var(--accent) 0%, #74d7ff 50%, var(--accent2) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero-sub {
+    font-size: clamp(1rem, 2.5vw, 1.2rem);
+    color: var(--muted);
+    max-width: 540px;
+    margin: 0 auto 20px;
+    line-height: 1.7;
+    animation: fadeUp 0.6s 0.2s ease both;
+  }
+
+  .hero-command {
+    display: inline-block;
+    padding: 4px 12px;
+    background: rgba(0,229,255,0.1);
+    border: 1px solid rgba(0,229,255,0.25);
+    border-radius: 6px;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 0.9em;
+    color: var(--accent);
+    letter-spacing: 0.05em;
+  }
+
+  .hero-tagline {
+    font-size: clamp(1.05rem, 2.2vw, 1.25rem);
+    color: var(--text);
+    margin-bottom: 44px;
+    animation: fadeUp 0.6s 0.25s ease both;
+    opacity: 0.9;
+  }
+
+  .hero-tagline strong {
+    color: #fff;
+    font-weight: 700;
+  }
+
+  .hero-actions {
+    display: flex;
+    gap: 14px;
+    justify-content: center;
+    flex-wrap: wrap;
+    animation: fadeUp 0.6s 0.35s ease both;
+    margin-bottom: 60px;
+  }
+
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 16px 32px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #000;
+    font-weight: 800;
+    font-size: 15px;
+    letter-spacing: -0.01em;
+    border-radius: 50px;
+    text-decoration: none;
+    transition: all 0.25s;
+    box-shadow: 0 8px 30px rgba(0,229,255,0.35), 0 0 0 0 rgba(0,229,255,0.3);
+    border: none;
+    cursor: pointer;
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 14px 40px rgba(0,229,255,0.5), 0 0 0 4px rgba(0,229,255,0.1);
+  }
+
+  .btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 16px 30px;
+    background: rgba(255,59,92,0.1);
+    color: var(--red);
+    font-weight: 700;
+    font-size: 15px;
+    border-radius: 50px;
+    text-decoration: none;
+    transition: all 0.25s;
+    border: 1px solid rgba(255,59,92,0.3);
+  }
+
+  .btn-secondary:hover {
+    transform: translateY(-3px);
+    background: rgba(255,59,92,0.18);
+    box-shadow: 0 8px 30px rgba(255,59,92,0.25);
+    border-color: var(--red);
+  }
+
+  .btn-icon { width: 18px; height: 18px; flex-shrink: 0; }
+
+  /* Browser mockup */
+  .browser-mock {
+    max-width: 680px;
+    margin: 0 auto;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 40px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.04);
+    animation: fadeUp 0.7s 0.45s ease both;
+  }
+
+  .browser-bar {
+    padding: 10px 16px;
+    background: rgba(255,255,255,0.03);
+    border-bottom: 1px solid var(--glass-border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .browser-dots { display: flex; gap: 6px; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; }
+  .dot-r { background: #ff5f57; }
+  .dot-y { background: #febc2e; }
+  .dot-g { background: #28c840; }
+
+  .browser-url {
+    flex: 1;
+    background: rgba(255,255,255,0.06);
+    border-radius: 6px;
+    padding: 5px 12px;
+    font-family: 'SF Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    text-align: center;
+  }
+
+  .browser-content {
+    padding: 16px;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .tab-pill {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 7px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 500;
+    transition: all 0.4s;
+  }
+
+  .tab-pill.visible {
+    background: rgba(255,255,255,0.08);
+    color: var(--text);
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+
+  .tab-pill.hidden {
+    background: rgba(0,229,255,0.08);
+    color: var(--accent);
+    border: 1px solid rgba(0,229,255,0.2);
+    opacity: 0.6;
+  }
+
+  .tab-icon { font-size: 14px; }
+
+  .vault-indicator {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    margin: 0 16px 16px;
+    background: rgba(0,229,255,0.07);
+    border: 1px solid rgba(0,229,255,0.15);
+    border-radius: 8px;
+    font-size: 12px;
+    color: var(--accent);
+    font-family: 'SF Mono', monospace;
+  }
+
+  /* ── Section shared ── */
+  section { padding: 80px 24px; }
+  .section-inner { max-width: 1040px; margin: 0 auto; }
+
+  .section-label {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 12px;
+    opacity: 0.8;
+  }
+
+  .section-title {
+    font-size: clamp(1.7rem, 4vw, 2.4rem);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.15;
+    margin-bottom: 14px;
+  }
+
+  .section-sub {
+    font-size: 1rem;
+    color: var(--muted);
+    max-width: 500px;
+    line-height: 1.7;
+    margin-bottom: 48px;
+  }
+
+  /* ── Pain grid ── */
+  .pain-section { background: transparent; }
+
+  .pain-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+  }
+
+  .pain-card {
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    padding: 28px;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .pain-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+  }
+
+  .pain-card:hover {
+    transform: translateY(-6px);
+    border-color: rgba(255,255,255,0.15);
+    box-shadow: 0 24px 48px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.06);
+  }
+
+  .pain-emoji { font-size: 2.4rem; margin-bottom: 16px; display: block; }
+
+  .pain-card h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+    letter-spacing: -0.02em;
+  }
+
+  .pain-card p {
+    font-size: 0.9rem;
+    color: var(--muted);
+    line-height: 1.7;
+  }
+
+  .pain-card p em {
+    font-style: normal;
+    color: rgba(255,255,255,0.6);
+  }
+
+  /* ── Feature grid ── */
+  .features-section {
+    background: rgba(255,255,255,0.015);
+    border-top: 1px solid var(--glass-border);
+    border-bottom: 1px solid var(--glass-border);
+  }
+
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+  }
+
+  .feature-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 16px;
+    padding: 30px;
+    transition: all 0.3s;
+    position: relative;
+  }
+
+  .feature-card:hover {
+    transform: translateY(-5px);
+    background: rgba(255,255,255,0.065);
+    border-color: rgba(0,229,255,0.2);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.3), 0 0 30px rgba(0,229,255,0.05);
+  }
+
+  .feature-icon {
+    width: 44px; height: 44px;
+    border-radius: 11px;
+    background: linear-gradient(135deg, rgba(0,229,255,0.15), rgba(0,180,216,0.08));
+    border: 1px solid rgba(0,229,255,0.2);
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 18px;
+    font-size: 20px;
+  }
+
+  .feature-card h3 {
+    font-size: 1.05rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+    letter-spacing: -0.02em;
+  }
+
+  .feature-card p {
+    font-size: 0.88rem;
+    color: var(--muted);
+    line-height: 1.7;
+  }
+
+  .feature-tag {
+    display: inline-block;
+    margin-top: 14px;
+    padding: 3px 10px;
+    background: rgba(0,229,255,0.08);
+    border: 1px solid rgba(0,229,255,0.15);
+    border-radius: 50px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--accent);
+    letter-spacing: 0.04em;
+    font-family: 'SF Mono', monospace;
+  }
+
+  /* ── How it works ── */
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 0;
+    position: relative;
+    margin-top: 48px;
+  }
+
+  .steps::before {
+    content: '';
+    position: absolute;
+    top: 22px; left: 10%; right: 10%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--dim), transparent);
+  }
+
+  .step {
+    text-align: center;
+    padding: 0 20px;
+    position: relative;
+  }
+
+  .step-num {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: var(--navy);
+    border: 1px solid var(--dim);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'SF Mono', monospace;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--accent);
+    margin: 0 auto 16px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .step h4 {
+    font-size: 0.95rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+    letter-spacing: -0.01em;
+  }
+
+  .step p { font-size: 0.84rem; color: var(--muted); line-height: 1.6; }
+
+  /* ── CTA section ── */
+  .cta-section {
+    text-align: center;
+    padding: 100px 24px;
+  }
+
+  .cta-card {
+    max-width: 600px;
+    margin: 0 auto;
+    background: rgba(0,229,255,0.04);
+    border: 1px solid rgba(0,229,255,0.12);
+    border-radius: 24px;
+    padding: 60px 48px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .cta-card::before {
+    content: '';
+    position: absolute;
+    top: -60px; left: 50%;
+    transform: translateX(-50%);
+    width: 300px; height: 150px;
+    background: radial-gradient(ellipse, rgba(0,229,255,0.12) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .cta-card h2 {
+    font-size: clamp(1.6rem, 4vw, 2.2rem);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    margin-bottom: 14px;
+    line-height: 1.2;
+  }
+
+  .cta-card p {
+    color: var(--muted);
+    font-size: 1rem;
+    margin-bottom: 36px;
+    line-height: 1.7;
+  }
+
+  .cta-buttons {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .cta-note {
+    margin-top: 20px;
+    font-size: 12px;
+    color: var(--dim);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .cta-note span { display: flex; align-items: center; gap: 4px; }
+
+  /* ── Trust strip ── */
+  .trust-strip {
+    display: flex;
+    justify-content: center;
+    gap: 36px;
+    flex-wrap: wrap;
+    padding: 32px 24px;
+    border-top: 1px solid var(--glass-border);
+    border-bottom: 1px solid var(--glass-border);
+  }
+
+  .trust-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--muted);
+    font-weight: 500;
+  }
+
+  .trust-item span:first-child { font-size: 16px; }
+
+  /* ── Footer ── */
+  footer {
+    text-align: center;
+    padding: 36px 24px;
+    font-size: 13px;
+    color: var(--dim);
+    line-height: 1.8;
+  }
+
+  footer strong { color: var(--muted); font-weight: 600; }
+  footer a { color: var(--muted); text-decoration: none; }
+  footer a:hover { color: var(--accent); }
+
+  /* ── Animations ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .reveal {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+  .reveal.visible { opacity: 1; transform: none; }
+  .reveal-delay-1 { transition-delay: 0.1s; }
+  .reveal-delay-2 { transition-delay: 0.2s; }
+  .reveal-delay-3 { transition-delay: 0.3s; }
+
+  /* ── Responsive ── */
+  @media (max-width: 680px) {
+    nav { padding: 14px 20px; }
+    .hero { padding: 64px 20px 60px; }
+    .browser-content { flex-direction: column; }
+    .steps::before { display: none; }
+    .cta-card { padding: 36px 24px; }
+    section { padding: 60px 20px; }
+    .trust-strip { gap: 20px; }
+  }
+
+  @media (max-width: 420px) {
+    .nav-logo .logo-type { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Nav -->
+<nav>
+  <a href="#" class="nav-logo">
+    <div class="logo-mark">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+      </svg>
+    </div>
+    <span class="logo-type">Tab<span>Vault</span></span>
+  </a>
+  <a href="#install" class="nav-cta">
+    <svg class="btn-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M20.283 10.356h-8.327v3.451h4.792c-.446 2.193-2.313 3.453-4.792 3.453a5.27 5.27 0 0 1-5.279-5.28 5.27 5.27 0 0 1 5.279-5.279c1.259 0 2.397.447 3.29 1.178l2.6-2.599c-1.584-1.381-3.615-2.233-5.89-2.233a8.908 8.908 0 0 0-8.934 8.934 8.907 8.907 0 0 0 8.934 8.934c4.467 0 8.529-3.249 8.529-8.934 0-.528-.081-1.097-.202-1.625z"/></svg>
+    Add to Chrome
+  </a>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-badge">
+    <div class="badge-dot"></div>
+    Chrome Extension · Free · Local Only
+  </div>
+
+  <h1>Your private tabs,<br><em>actually private.</em></h1>
+
+  <p class="hero-sub">One keystroke. Sensitive tabs gone. Encrypted vault on your device. No cloud. No logs. No one has to know what you're searching for.</p>
+
+  <p class="hero-tagline">Press <span class="hero-command">Ctrl+Shift+V</span> → <strong>tabs vanish instantly.</strong></p>
+
+  <div class="hero-actions">
+    <a href="#install" class="btn-primary">
+      <svg class="btn-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M20.283 10.356h-8.327v3.451h4.792c-.446 2.193-2.313 3.453-4.792 3.453a5.27 5.27 0 0 1-5.279-5.28 5.27 5.27 0 0 1 5.279-5.279c1.259 0 2.397.447 3.29 1.178l2.6-2.599c-1.584-1.381-3.615-2.233-5.89-2.233a8.908 8.908 0 0 0-8.934 8.934 8.907 8.907 0 0 0 8.934 8.934c4.467 0 8.529-3.249 8.529-8.934 0-.528-.081-1.097-.202-1.625z"/></svg>
+      Install Free
+    </a>
+    <a href="https://github.com" class="btn-secondary" target="_blank" rel="noopener">
+      <svg class="btn-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.603-3.369-1.342-3.369-1.342-.454-1.155-1.11-1.462-1.11-1.462-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0 1 12 6.836c.85.004 1.705.114 2.504.336 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.741 0 .267.18.578.688.48C19.138 20.161 22 16.416 22 12c0-5.523-4.477-10-10-10z"/></svg>
+      View Source
+    </a>
+  </div>
+
+  <!-- Browser mockup -->
+  <div class="browser-mock">
+    <div class="browser-bar">
+      <div class="browser-dots">
+        <div class="dot dot-r"></div>
+        <div class="dot dot-y"></div>
+        <div class="dot dot-g"></div>
+      </div>
+      <div class="browser-url">New Tab · after Ctrl+Shift+V</div>
+    </div>
+    <div class="browser-content">
+      <div class="tab-pill visible"><span class="tab-icon">📰</span> New York Times</div>
+      <div class="tab-pill visible"><span class="tab-icon">🐦</span> Twitter</div>
+      <div class="tab-pill hidden"><span class="tab-icon">🔒</span> indeed.com — vaulted</div>
+      <div class="tab-pill hidden"><span class="tab-icon">🔒</span> mint.com — vaulted</div>
+      <div class="tab-pill visible"><span class="tab-icon">📧</span> Gmail</div>
+    </div>
+    <div class="vault-indicator">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      TabVault: 2 tabs encrypted → AES-256-GCM · stored locally
+    </div>
+  </div>
+</section>
+
+<!-- Trust strip -->
+<div class="trust-strip">
+  <div class="trust-item"><span>🔐</span><span>AES-256-GCM encrypted</span></div>
+  <div class="trust-item"><span>📴</span><span>100% offline — no server</span></div>
+  <div class="trust-item"><span>👁️</span><span>No telemetry ever</span></div>
+  <div class="trust-item"><span>⚡</span><span>Instant — under 100ms</span></div>
+  <div class="trust-item"><span>🗑️</span><span>5 wrong attempts → self-destructs</span></div>
+</div>
+
+<!-- Pain section -->
+<section class="pain-section">
+  <div class="section-inner">
+    <div class="reveal">
+      <div class="section-label">Why TabVault exists</div>
+      <h2 class="section-title">Some searches aren't<br>meant to be seen.</h2>
+      <p class="section-sub">You shouldn't have to close 14 tabs and act casual every time someone walks by. TabVault was built for real life.</p>
+    </div>
+    <div class="pain-grid">
+      <div class="pain-card reveal reveal-delay-1">
+        <span class="pain-emoji">💼</span>
+        <h3>The Job Hunt You Can't Talk About</h3>
+        <p>Rejection after rejection. Spreadsheets of applications. LinkedIn notifications. <em>You're looking for a way out — quietly, on your own terms.</em> No one needs to see that tab trail.</p>
+      </div>
+      <div class="pain-card reveal reveal-delay-2">
+        <span class="pain-emoji">💸</span>
+        <h3>Money You're Still Figuring Out</h3>
+        <p>Debt trackers. Budget apps. "How to survive until next paycheck." <em>Your finances are your business.</em> Not your partner's, not your parents'. Keep it that way.</p>
+      </div>
+      <div class="pain-card reveal reveal-delay-3">
+        <span class="pain-emoji">🏥</span>
+        <h3>Health Searches That Are Private</h3>
+        <p>Symptoms you're scared to say out loud. Forums where people actually get it. <em>Your health is yours alone.</em> Research without the ambient dread of someone walking past.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Features section -->
+<section class="features-section">
+  <div class="section-inner">
+    <div class="reveal">
+      <div class="section-label">How it works</div>
+      <h2 class="section-title">Built for paranoia.<br>Engineered for trust.</h2>
+      <p class="section-sub">No backend. No accounts. No sync. Everything happens inside your browser, encrypted with your password.</p>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card reveal reveal-delay-1">
+        <div class="feature-icon">⌨️</div>
+        <h3>Hotkey Panic Button</h3>
+        <p>Ctrl+Shift+V triggers instantly from any context. Matching tabs on your watchlist vanish and get replaced with blank pages. No animation, no delay, no trace in history.</p>
+        <div class="feature-tag">Ctrl+Shift+V</div>
+      </div>
+      <div class="feature-card reveal reveal-delay-2">
+        <div class="feature-icon">🔑</div>
+        <h3>Biometric Unlock</h3>
+        <p>Use your fingerprint, Face ID, or device PIN to unlock. Backed by WebAuthn — the same standard that protects bank logins. No password typed, no shoulder-surf risk.</p>
+        <div class="feature-tag">WebAuthn · FIDO2</div>
+      </div>
+      <div class="feature-card reveal reveal-delay-3">
+        <div class="feature-icon">📋</div>
+        <h3>Custom Watchlist</h3>
+        <p>Tell TabVault exactly which domains to watch for. Add your job board, your finance app, your health forum. It monitors automatically — you just press the hotkey.</p>
+        <div class="feature-tag">Synced via chrome.storage</div>
+      </div>
+    </div>
+
+    <!-- How it works steps -->
+    <div class="steps reveal" style="margin-top: 64px;">
+      <div class="step">
+        <div class="step-num">01</div>
+        <h4>Set your password</h4>
+        <p>One-time setup. AES-256 key derived via PBKDF2. Never leaves your machine.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">02</div>
+        <h4>Configure watchlist</h4>
+        <p>Add the domains you want auto-detected. Defaults included.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">03</div>
+        <h4>Ctrl+Shift+V</h4>
+        <p>Tabs encrypted, replaced with blank pages instantly.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">04</div>
+        <h4>Restore when ready</h4>
+        <p>Unlock with password or fingerprint. Tabs reopen exactly as they were.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA section -->
+<section class="cta-section" id="install">
+  <div class="cta-card reveal">
+    <h2>One keystroke between you<br>and your privacy.</h2>
+    <p>Free to install. No account needed. Your data never leaves your device. If you enter the wrong password 5 times, the vault self-destructs.</p>
+    <div class="cta-buttons">
+      <a href="https://chrome.google.com/webstore" class="btn-primary" target="_blank" rel="noopener">
+        <svg class="btn-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M20.283 10.356h-8.327v3.451h4.792c-.446 2.193-2.313 3.453-4.792 3.453a5.27 5.27 0 0 1-5.279-5.28 5.27 5.27 0 0 1 5.279-5.279c1.259 0 2.397.447 3.29 1.178l2.6-2.599c-1.584-1.381-3.615-2.233-5.89-2.233a8.908 8.908 0 0 0-8.934 8.934 8.907 8.907 0 0 0 8.934 8.934c4.467 0 8.529-3.249 8.529-8.934 0-.528-.081-1.097-.202-1.625z"/></svg>
+        Install Free on Chrome
+      </a>
+      <a href="https://github.com" class="btn-secondary" target="_blank" rel="noopener">
+        <svg class="btn-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.603-3.369-1.342-3.369-1.342-.454-1.155-1.11-1.462-1.11-1.462-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0 1 12 6.836c.85.004 1.705.114 2.504.336 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.741 0 .267.18.578.688.48C19.138 20.161 22 16.416 22 12c0-5.523-4.477-10-10-10z"/></svg>
+        View Source
+      </a>
+    </div>
+    <div class="cta-note">
+      <span>🔒 AES-256-GCM</span>
+      <span>· No account ·</span>
+      <span>📴 Local-only vault</span>
+      <span>· Open source ·</span>
+      <span>⚡ Free forever</span>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer>
+  <p>Made for silent struggles. <strong>Local only.</strong> No servers, no telemetry, no judgment.</p>
+  <p style="margin-top: 8px;">
+    <a href="#">Privacy Policy</a> · <a href="https://github.com" target="_blank">GitHub</a> · <a href="#">Report a Bug</a>
+  </p>
+  <p style="margin-top: 12px; font-size: 12px;">© 2026 TabVault. All vault data stays on your device. Always.</p>
+</footer>
+
+<script>
+  // Scroll reveal
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        observer.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+  reveals.forEach(el => observer.observe(el));
+
+  // Animate browser mock tabs
+  const hiddenTabs = document.querySelectorAll('.tab-pill.hidden');
+  let animated = false;
+  const mockObserver = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting && !animated) {
+        animated = true;
+        hiddenTabs.forEach((tab, i) => {
+          setTimeout(() => {
+            tab.style.transition = 'all 0.5s ease';
+            tab.style.opacity = '0';
+            tab.style.transform = 'scale(0.92)';
+            setTimeout(() => {
+              tab.style.opacity = '0.55';
+              tab.style.transform = 'none';
+            }, 500);
+          }, i * 200 + 600);
+        });
+      }
+    });
+  }, { threshold: 0.5 });
+  const mock = document.querySelector('.browser-mock');
+  if (mock) mockObserver.observe(mock);
+</script>
+</body>
+</html>
